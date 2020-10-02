@@ -15,8 +15,10 @@ export const Container = styled.View<ContainerProps>`
   margin-bottom: 8px;
   border-width: 2px;
   border-color: #232129;
+
   flex-direction: row;
   align-items: center;
+
   ${props =>
     props.isErrored &&
     css`

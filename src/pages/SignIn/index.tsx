@@ -6,17 +6,23 @@ import {
   KeyboardAvoidingView,
   Platform,
   TextInput,
+  Alert,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import * as Yup from 'yup';
 
 import { Form } from '@unform/mobile';
 import { FormHandles } from '@unform/core';
 
+import { useAuth } from '../../hooks/auth';
+
+import getValidationErrors from '../../utils/getValidationErrors';
+
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 
-import logoImg from '../../assets/Logo.png';
+import logoImg from '../../assets/logo.png';
 
 import {
   Container,
@@ -27,12 +33,20 @@ import {
   CreateAccountButtonText,
 } from './styles';
 
+interface SignInFormData {
+  email: string;
+  password: string;
+}
+
 const SignIn: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const passwordInputRef = useRef<TextInput>(null);
+
   const navigation = useNavigation();
 
-  const handleSubmit = useCallback(
+  const { signIn } = useAuth();
+
+  const handleSignIn = useCallback(
     async (data: SignInFormData) => {
       try {
         formRef.current?.setErrors({});
@@ -52,8 +66,6 @@ const SignIn: React.FC = () => {
           email: data.email,
           password: data.password,
         });
-
-        history.push('/dashboard');
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const errors = getValidationErrors(err);
@@ -63,15 +75,15 @@ const SignIn: React.FC = () => {
           return;
         }
 
-        addToast({
-          type: 'error',
-          title: 'Erro na autenticação',
-          description: 'Ocorreu um erro ao fazer login, cheque as credenciais.',
-        });
+        Alert.alert(
+          'Erro na autenticação',
+          'Ocorreu um erro ao fazer login, cheque as credenciais.',
+        );
       }
     },
-    [signIn, addToast, history],
+    [signIn],
   );
+
   return (
     <>
       <KeyboardAvoidingView
@@ -90,7 +102,7 @@ const SignIn: React.FC = () => {
               <Title>Faça seu logon</Title>
             </View>
 
-            <Form ref={formRef} onSubmit={handledSignIn}>
+            <Form ref={formRef} onSubmit={handleSignIn}>
               <Input
                 autoCorrect={false}
                 autoCapitalize="none"
@@ -99,7 +111,9 @@ const SignIn: React.FC = () => {
                 icon="mail"
                 placeholder="E-mail"
                 returnKeyType="next"
-                onSubmitEditing={() => {}}
+                onSubmitEditing={() => {
+                  passwordInputRef.current?.focus();
+                }}
               />
 
               <Input
@@ -116,7 +130,6 @@ const SignIn: React.FC = () => {
 
               <Button
                 onPress={() => {
-                  // eslint-disable-next-line no-unused-expressions
                   formRef.current?.submitForm();
                 }}
               >
@@ -133,7 +146,7 @@ const SignIn: React.FC = () => {
 
       <CreateAccountButton onPress={() => navigation.navigate('SignUp')}>
         <Icon name="log-in" size={20} color="#ff9000" />
-        <CreateAccountButtonText>Criar uma contar</CreateAccountButtonText>
+        <CreateAccountButtonText>Criar uma conta</CreateAccountButtonText>
       </CreateAccountButton>
     </>
   );
